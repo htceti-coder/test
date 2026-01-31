@@ -4,15 +4,15 @@
 # Date: 28/01/2026
 
 # Exécution sécurisée
-RestrictedPython==6.2
-psutil==5.9.8
+RestrictedPython
+psutil
 
 # Logging et monitoring
-loguru==0.7.2
+loguru
 
 # Testing
-pytest==8.0.0
-pytest-cov==4.1.0
+pytest
+pytest-cov
 
 # Collaboration (pour les autres membres)
-jupyter==1.0.0
+jupyter
