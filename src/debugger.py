@@ -2,6 +2,7 @@
 import traceback
 import sys
 import io
+import datetime
 
 class Debugger:
     """
@@ -53,3 +54,21 @@ class Debugger:
         report += f"Suggestion: {analysis.get('suggestions')}\n"
         report += "--------------------"
         return report
+
+    def log_error_to_file(self, analysis):
+        """
+        Saves the debug analysis into the /logs directory.
+        """
+        log_path = "logs/error_history.log"
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        log_entry = (
+            f"[{timestamp}] ERROR TYPE: {analysis.get('error_type')}\n"
+            f"MESSAGE: {analysis.get('raw_message')}\n"
+            f"SUGGESTION: {analysis.get('suggestions')}\n"
+            f"{'-'*30}\n"
+        )
+        
+        with open(log_path, "a") as f:
+            f.write(log_entry)
+        print(f"Log updated in {log_path}")
