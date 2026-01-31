@@ -1,0 +1,18 @@
+# requirements.txt
+# Dépendances pour le moteur d'exécution sécurisé
+# Auteur: Sofiane
+# Date: 28/01/2026
+
+# Exécution sécurisée
+RestrictedPython==6.2
+psutil==5.9.8
+
+# Logging et monitoring
+loguru==0.7.2
+
+# Testing
+pytest==8.0.0
+pytest-cov==4.1.0
+
+# Collaboration (pour les autres membres)
+jupyter==1.0.0
