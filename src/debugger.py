@@ -1,74 +1,68 @@
-# Membre 2
-import traceback
 import sys
-import io
-import datetime
+import re
+from loguru import logger
+
+# Configure loguru to write to the logs folder
+logger.add("logs/debugger.log", rotation="500 MB", level="INFO")
 
 class Debugger:
     """
-    Module 2: Analyzes execution results and provides detailed debugging info.
+    Module 2: Analyzes execution results, identifies error types, 
+    and provides human-readable suggestions.
     """
-    
-    @staticmethod
-    def analyze_error(execution_result):
-        """
-        Takes the dictionary result from ExecutionEngine and enriches it.
-        """
-        if execution_result['success']:
-            return {"status": "Clean", "message": "No errors detected."}
 
-        error_msg = execution_result.get('error', 'Unknown Error')
-        
-        # Basic Error Categorization
-        error_type = error_msg.split(':')[0]
-        
-        analysis = {
-            "status": "Error Detected",
-            "error_type": error_type,
-            "raw_message": error_msg,
-            "suggestions": Debugger._get_suggestions(error_type, error_msg),
+    def __init__(self):
+        self.common_fixes = {
+            "SyntaxError": "Check for missing colons (:), mismatched brackets, or unclosed quotes.",
+            "NameError": "A variable name is misspelled or has not been defined yet.",
+            "ZeroDivisionError": "You are dividing by zero. Add a check (if divisor != 0).",
+            "TypeError": "Data types don't match (e.g., adding a string to an integer).",
+            "IndentationError": "Check your spaces/tabs. Python requires consistent indentation.",
+            "IndexError": "You're trying to access a list index that doesn't exist.",
+            "KeyError": "The key you're looking for isn't in the dictionary."
         }
+
+    def analyze_error(self, execution_result):
+        """
+        Parses the dictionary output from the ExecutionEngine.
+        """
+        if execution_result.get('success'):
+            logger.info("Code executed successfully. No debugging needed.")
+            return {"status": "Clean", "message": "Success"}
+
+        raw_error = execution_result.get('error', "UnknownError: No details provided.")
+        
+        # Extract Error Type (e.g., "ValueError")
+        error_type_match = re.match(r"^(\w+):", raw_error)
+        error_type = error_type_match.group(1) if error_type_match else "UnknownError"
+
+        # Extract Line Number (if present in traceback)
+        line_match = re.search(r"line (\d+)", raw_error)
+        line_no = line_match.group(1) if line_match else "Unknown"
+
+        analysis = {
+            "status": "Error",
+            "type": error_type,
+            "line": line_no,
+            "message": raw_error,
+            "suggestion": self.common_fixes.get(error_type, "Consult Python documentation for this specific error.")
+        }
+
+        # Log the error for Module 4 (Documentation/History)
+        logger.error(f"Debug Analysis: {error_type} at line {line_no} | Msg: {raw_error}")
+        
         return analysis
 
-    @staticmethod
-    def _get_suggestions(error_type, message):
-        """
-        Provides helpful tips based on common Python errors.
-        """
-        suggestions = {
-            "SyntaxError": "Check for missing colons (:), unclosed parentheses, or quotes.",
-            "NameError": "You are using a variable that hasn't been defined yet.",
-            "TypeError": "You are performing an operation on incompatible types (e.g., adding string to int).",
-            "IndentationError": "Check your spaces or tabs. Python is strict about alignment.",
-            "ImportError": "The module you are trying to use is not installed or spelled incorrectly."
-        }
-        return suggestions.get(error_type, "Check the traceback logs for the exact line number.")
-
-    def format_debug_report(self, analysis):
-        """
-        Returns a human-readable string for the collaboration team.
-        """
-        report = f"--- DEBUG REPORT ---\n"
-        report += f"Type: {analysis.get('error_type')}\n"
-        report += f"Details: {analysis.get('raw_message')}\n"
-        report += f"Suggestion: {analysis.get('suggestions')}\n"
-        report += "--------------------"
-        return report
-
-    def log_error_to_file(self, analysis):
-        """
-        Saves the debug analysis into the /logs directory.
-        """
-        log_path = "logs/error_history.log"
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    def get_rich_report(self, analysis):
+        """Returns a formatted string for the user interface."""
+        if analysis['status'] == "Clean":
+            return "✅ Code passed all checks."
         
-        log_entry = (
-            f"[{timestamp}] ERROR TYPE: {analysis.get('error_type')}\n"
-            f"MESSAGE: {analysis.get('raw_message')}\n"
-            f"SUGGESTION: {analysis.get('suggestions')}\n"
-            f"{'-'*30}\n"
+        return (
+            f"\n--- 🔍 DEBUG REPORT ---\n"
+            f"❌ Error Type: {analysis['type']}\n"
+            f"📍 Location  : Line {analysis['line']}\n"
+            f"📝 Message   : {analysis['message']}\n"
+            f"💡 Suggestion: {analysis['suggestion']}\n"
+            f"----------------------"
         )
-        
-        with open(log_path, "a") as f:
-            f.write(log_entry)
-        print(f"Log updated in {log_path}")
