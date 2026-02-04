@@ -244,7 +244,7 @@ flake8 src/ tests/
 | Moteur d'exécution | ████████████ 100% | 28/01/2026 - Sofiane |
 | Module debugging | ░░░░░░░░░░░░ 0% | - |
 | Collaboration | ░░░░░░░░░░░░ 0% | - |
-| Documentation | ████░░░░░░░░ 33% | 28/01/2026 |
+| Documentation | ████░░░░░░░░ 0% | 28/01/2026 |
 
 ---
 
