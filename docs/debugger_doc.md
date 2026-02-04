@@ -1,7 +1,3 @@
-Voici les fichiers de documentation pour les **Modules 2 et 3**, rigoureusement harmonisés selon la structure exacte fournie par Sofiane (Module 1).
-
----
-
 ### 📄 `docs/debugger_doc.md` (Module 2)
 
 # 📚 Documentation - Moteur de Debugging Avancé
