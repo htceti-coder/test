@@ -1,19 +1,20 @@
 import pytest
 from src.debugger import Debugger
 
-def test_analyze_syntax_error():
-    fake_result = {
+def test_syntax_error_analysis():
+    debugger = Debugger()
+    mock_result = {
         'success': False,
-        'error': 'SyntaxError: invalid syntax',
+        'error': 'SyntaxError: invalid syntax (line 2)',
         'output': ''
     }
-    debugger = Debugger()
-    analysis = debugger.analyze_error(fake_result)
-    assert analysis['error_type'] == 'SyntaxError'
-    assert "missing colons" in analysis['suggestions']
+    analysis = debugger.analyze_error(mock_result)
+    assert analysis['type'] == 'SyntaxError'
+    assert analysis['line'] == '2'
+    assert "colons" in analysis['suggestion']
 
-def test_analyze_success():
-    fake_result = {'success': True, 'output': 'Hello'}
+def test_success_case():
     debugger = Debugger()
-    analysis = debugger.analyze_error(fake_result)
+    mock_result = {'success': True, 'output': 'Hello', 'error': None}
+    analysis = debugger.analyze_error(mock_result)
     assert analysis['status'] == 'Clean'
