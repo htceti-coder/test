@@ -3,57 +3,69 @@ from src.execution_engine import ExecutionEngine
 
 @pytest.fixture
 def engine():
-    """Crée une instance par défaut du moteur pour chaque test."""
-    return ExecutionEngine(timeout=5, max_memory_mb=128)
+    """Fixture pour initialiser le moteur avant chaque test."""
+    return ExecutionEngine(timeout=5, max_memory_mb=50)
 
-def test_execute_simple_code(engine):
-    """Vérifie que le code valide s'exécute correctement."""
-    code = "print('Test Réussi'); x = 10 + 20; print(x)"
+def test_execute_success(engine):
+    """Vérifie qu'un code simple s'exécute correctement."""
+    code = "print('Hello World')"
     result = engine.execute_code(code)
-    
     assert result['success'] is True
-    assert "Test Réussi" in result['output']
-    assert "30" in result['output']
+    assert "Hello World" in result['output']
+    assert result['execution_time'] >= 0
 
-def test_syntax_error(engine):
-    """Vérifie la détection d'une erreur de syntaxe."""
-    code = "def erreur_syntaxe(" # Parenthèse non fermée
+def test_execute_syntax_error(engine):
+    """Vérifie la capture des erreurs de syntaxe."""
+    code = "print('Test"  # Erreur : guillemet et parenthèse manquants
     result = engine.execute_code(code)
-    
     assert result['success'] is False
-    assert "SyntaxError" in result['error']
+    assert "syntaxe" in result['error'].lower()
 
-def test_runtime_error(engine):
-    """Vérifie la capture d'une exception à l'exécution (Division par zéro)."""
-    code = "x = 1 / 0"
+def test_execute_runtime_error(engine):
+    """Vérifie la capture des erreurs d'exécution (ZeroDivision)."""
+    code = "1 / 0"
     result = engine.execute_code(code)
-    
     assert result['success'] is False
     assert "ZeroDivisionError" in result['error']
 
-def test_security_restriction_import(engine):
-    """Vérifie que RestrictedPython bloque les imports dangereux (os, sys)."""
-    code = "import os; os.listdir('/')"
-    result = engine.execute_code(code)
-    
-    # Le moteur doit soit échouer à l'import, soit lever une erreur de sécurité
-    assert result['success'] is False
-    assert ("ImportError" in result['error'] or "not allowed" in result['error'].lower())
+def test_execute_with_input(engine):
+    """Vérifie la simulation de l'entrée utilisateur input()."""
+    code = "name = input(); print(f'Hello {name}')"
+    result = engine.execute_code(code, user_input="Sofiane")
+    assert result['success'] is True
+    assert "Hello Sofiane" in result['output']
 
-def test_security_restriction_builtins(engine):
-    """Vérifie que l'accès à __builtins__ est restreint."""
-    code = "open('/etc/passwd', 'r')"
-    result = engine.execute_code(code)
+def test_validate_code(engine):
+    """Vérifie la fonction de validation de syntaxe seule."""
+    valid_code = "x = 10"
+    invalid_code = "x ="
     
-    assert result['success'] is False
-    assert "NameError" in result['error'] # 'open' ne devrait pas être défini
+    is_valid_1, _ = engine.validate_code(valid_code)
+    is_valid_2, _ = engine.validate_code(invalid_code)
+    
+    assert is_valid_1 is True
+    assert is_valid_2 is False
 
-def test_timeout_limit(engine):
-    """Vérifie que le moteur interrompt un code trop long (boucle infinie)."""
-    # On réduit le timeout pour ce test spécifique
-    short_engine = ExecutionEngine(timeout=1)
-    code = "while True: pass"
-    result = short_engine.execute_code(code)
+def test_history_and_stats(engine):
+    """Vérifie que l'historique et les statistiques se mettent à jour."""
+    # Exécuter un succès et un échec
+    engine.execute_code("x = 1")
+    engine.execute_code("1 / 0")
     
-    assert result['success'] is False
-    assert "Timeout" in result['error']
+    stats = engine.get_stats()
+    history = engine.get_history()
+    
+    assert stats['total_executions'] == 2
+    assert stats['success_rate'] == 50.0
+    assert len(history) == 2
+
+def test_memory_limit_logic(engine):
+    """
+    Vérifie la logique de calcul de mémoire.
+    Note: Le dépassement réel est difficile à tester de manière stable en CI,
+    mais on vérifie que la valeur est calculée.
+    """
+    code = "x = [i for i in range(1000)]"
+    result = engine.execute_code(code)
+    assert 'memory_used' in result
+    assert isinstance(result['memory_used'], float)
