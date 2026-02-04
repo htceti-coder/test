@@ -1,5 +1,4 @@
 import pytest
-from src.debugger import Debugger
 
 @pytest.fixture
 def debugger():
