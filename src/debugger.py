@@ -56,13 +56,13 @@ class Debugger:
     def get_rich_report(self, analysis):
         """Returns a formatted string for the user interface."""
         if analysis['status'] == "Clean":
-            return "✅ Code passed all checks."
+            return "Code passed all checks."
         
         return (
-            f"\n--- 🔍 DEBUG REPORT ---\n"
-            f"❌ Error Type: {analysis['type']}\n"
-            f"📍 Location  : Line {analysis['line']}\n"
-            f"📝 Message   : {analysis['message']}\n"
-            f"💡 Suggestion: {analysis['suggestion']}\n"
+            f"\n--- DEBUG REPORT ---\n"
+            f"Error Type: {analysis['type']}\n"
+            f"Location  : Line {analysis['line']}\n"
+            f"Message   : {analysis['message']}\n"
+            f"Suggestion: {analysis['suggestion']}\n"
             f"----------------------"
         )
