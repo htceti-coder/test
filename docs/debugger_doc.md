@@ -2,8 +2,7 @@
 
 # 📚 Documentation - Moteur de Debugging Avancé
 
-**Auteur:** Membre 2 (Analyste)  
-**Date:** 28/01/2026  
+**Auteur:** Tarek Ilies Embarki 
 **Module:** `debugger.py`
 
 ---
@@ -115,11 +114,3 @@ Le debugger reçoit directement le dictionnaire de sortie de `ExecutionEngine`.
 - ✅ Base de connaissances initiale (7 types d'erreurs)
 - ✅ Intégration de `loguru` pour la traçabilité
 - ✅ Tests unitaires avec 100% de couverture
-
----
-
-## 📞 Contact
-
-**Auteur:** Membre 2 (Analyste)  
-**Projet:** Mini-projet Python Debugging Collaboratif - G01  
-**Module:** Doctorat - Troisième Cycle
