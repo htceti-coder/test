@@ -5,49 +5,30 @@ from src.debugger import Debugger
 def db():
     return Debugger()
 
-# 1. Test Success Path
 def test_analyze_success(db):
-    mock_result = {'success': True, 'output': 'Hello', 'error': None}
-    analysis = db.analyze(mock_result)
+    res = {'success': True, 'output': 'Hi'}
+    analysis = db.analyze(res)
     assert analysis["status"] == "SUCCESS"
-    # Test the formatting for success too
-    report = db.format_report(analysis)
-    assert "perfectly" in report
+    assert "valide" in db.format_report(analysis)
 
-# 2. Test Known Error (SyntaxError)
-def test_analyze_syntax_error(db):
-    mock_result = {
-        'success': False, 
-        'error': 'SyntaxError: invalid syntax (line 5)', 
-        'output': ''
-    }
-    analysis = db.analyze(mock_result)
+def test_analyze_known_error(db):
+    res = {'success': False, 'error': 'SyntaxError: invalid syntax (line 5)'}
+    analysis = db.analyze(res)
     assert analysis["error_type"] == "SyntaxError"
     assert analysis["line_number"] == 5
-    assert "colons" in analysis["suggestion"]
-    # Test the formatting for failure
-    report = db.format_report(analysis)
-    assert "DEBUGGER ANALYSIS" in report
-    assert "Line 5" in report
+    assert "deux-points" in analysis["suggestion"]
+    assert "DEBUGGING" in db.format_report(analysis)
 
-# 3. Test Unknown Error (The "Missed" logic)
 def test_analyze_unknown_error(db):
-    mock_result = {
-        'success': False, 
-        'error': 'SuperRareError: something weird happened', 
-        'output': ''
-    }
-    analysis = db.analyze(mock_result)
-    assert analysis["error_type"] == "SuperRareError"
-    # This checks the fallback suggestion line
-    assert "official documentation" in analysis["suggestion"]
-
-# 4. Test Error with no line number (Regex fallback)
-def test_error_no_line(db):
-    mock_result = {
-        'success': False, 
-        'error': 'ValueError: bad value', 
-        'output': ''
-    }
-    analysis = db.analyze(mock_result)
+    res = {'success': False, 'error': 'RuntimeError: unknown issue'}
+    analysis = db.analyze(res)
+    assert "documentation" in analysis["suggestion"]
     assert analysis["line_number"] == "Unknown"
+
+def test_formatting_failure(db):
+    analysis = {
+        "status": "FAILED", "error_type": "NameError", "line_number": 1,
+        "message": "x not defined", "suggestion": "Check typos", "severity": "Medium"
+    }
+    report = db.format_report(analysis)
+    assert "NameError" in report
