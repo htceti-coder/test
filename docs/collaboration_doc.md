@@ -2,7 +2,7 @@
 
 Auteur: Faiçal
 Date: 04/02/2026
-Module: execution_engine.py
+Module: collaboration .py
 
 ## Rôle
 Ce module gère l'aspect humain et collaboratif du projet. Il permet de tracer l'activité des développeurs sur la plateforme.
