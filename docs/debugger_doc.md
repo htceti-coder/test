@@ -107,22 +107,10 @@ pytest tests/test_debugger.py --cov=src.debugger
 ### Module d'Exécution (Module 1)
 Le debugger reçoit directement le dictionnaire de sortie de `ExecutionEngine`.
 
-### Module de Collaboration (Module 3)
-Les erreurs analysées sont transmises au module de collaboration pour être assignées à un membre de l'équipe pour correction.
-
----
-
-## 📈 Évolutions futures
-
-- [ ] Support multilingue pour les suggestions (Français/Anglais)
-- [ ] Recherche automatique sur StackOverflow via API
-- [ ] Analyse statique de code complémentaire (Linter)
-
 ---
 
 ## 📝 Changelog
 
-### Version 1.0.0 (28/01/2026)
 - ✨ Implémentation de l'analyseur Regex
 - ✅ Base de connaissances initiale (7 types d'erreurs)
 - ✅ Intégration de `loguru` pour la traçabilité
