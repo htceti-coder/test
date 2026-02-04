@@ -1,71 +1,61 @@
-import pytest
+import re
+from loguru import logger
 
-@pytest.fixture
-def debugger():
-    """Fixture to provide a clean Debugger instance for each test."""
-    return Debugger()
+# Configuration du logging pour le module 2
+logger.add("logs/debugger.log", rotation="1 MB", retention="10 days", level="INFO")
 
-def test_analyze_success(debugger):
-    """Test that a successful execution result returns the correct status."""
-    mock_result = {
-        'success': True,
-        'output': 'Hello World',
-        'error': None
-    }
-    analysis = debugger.analyze(mock_result)
-    assert analysis["status"] == "SUCCESS"
-    assert analysis["analysis"] is None
+class Debugger:
+    """
+    Module 2: Analyseur d'erreurs et suggestions.
+    """
+    def __init__(self):
+        self.knowledge_base = {
+            "SyntaxError": "Vérifiez les deux-points (:), les parenthèses ou l'indentation.",
+            "NameError": "Variable non définie. Vérifiez l'orthographe ou l'initialisation.",
+            "ZeroDivisionError": "Division par zéro impossible. Ajoutez une condition 'if'.",
+            "TypeError": "Types incompatibles. Utilisez int() ou str() pour convertir.",
+            "IndexError": "Index hors limites. Vérifiez la taille de votre liste."
+        }
 
-def test_analyze_syntax_error(debugger):
-    """Test analysis of a SyntaxError with a line number."""
-    mock_result = {
-        'success': False,
-        'error': 'SyntaxError: invalid syntax (line 3)',
-        'output': ''
-    }
-    analysis = debugger.analyze(mock_result)
-    assert analysis["status"] == "FAILED"
-    assert analysis["error_type"] == "SyntaxError"
-    assert analysis["line_number"] == 3
-    assert "colons" in analysis["suggestion"]
-    assert analysis["severity"] == "High"
+    def analyze(self, execution_result):
+        """Analyse le dictionnaire de sortie du moteur d'exécution."""
+        if execution_result.get('success'):
+            logger.info("Exécution réussie.")
+            return {"status": "SUCCESS", "analysis": None}
 
-def test_analyze_runtime_error(debugger):
-    """Test analysis of a ZeroDivisionError."""
-    mock_result = {
-        'success': False,
-        'error': 'ZeroDivisionError: division by zero on line 10',
-        'output': ''
-    }
-    analysis = debugger.analyze(mock_result)
-    assert analysis["error_type"] == "ZeroDivisionError"
-    assert analysis["line_number"] == 10
-    assert "mathematically impossible" in analysis["suggestion"]
-    assert analysis["severity"] == "Medium"
+        raw_error = execution_result.get('error', "")
+        
+        # Extraction du type et du message
+        parts = raw_error.split(':', 1)
+        error_type = parts[0].strip()
+        error_msg = parts[1].strip() if len(parts) > 1 else "Pas de détails"
 
-def test_unknown_error(debugger):
-    """Test that unknown errors get a default suggestion."""
-    mock_result = {
-        'success': False,
-        'error': 'MyCustomError: something went wrong',
-        'output': ''
-    }
-    analysis = debugger.analyze(mock_result)
-    assert analysis["error_type"] == "MyCustomError"
-    assert "official documentation" in analysis["suggestion"]
+        # Extraction de la ligne via Regex
+        line_match = re.search(r"line (\d+)", raw_error)
+        line_no = int(line_match.group(1)) if line_match else "Unknown"
 
-def test_format_report(debugger):
-    """Test that the report formatting produces a visible string."""
-    analysis = {
-        "status": "FAILED",
-        "error_type": "NameError",
-        "line_number": 5,
-        "message": "name 'x' is not defined",
-        "suggestion": "Check for typos.",
-        "severity": "Medium"
-    }
-    report = debugger.format_report(analysis)
-    assert "DEBUGGER ANALYSIS" in report
-    assert "NameError" in report
-    assert "Line 5" in report
-    assert "Check for typos" in report
+        analysis = {
+            "status": "FAILED",
+            "error_type": error_type,
+            "line_number": line_no,
+            "message": error_msg,
+            "suggestion": self.knowledge_base.get(error_type, "Consultez la documentation Python officielle."),
+            "severity": "High" if error_type in ["SyntaxError", "IndentationError"] else "Medium"
+        }
+
+        logger.error(f"Erreur détectée: {error_type} à la ligne {line_no}")
+        return analysis
+
+    def format_report(self, analysis):
+        """Génère un rapport lisible pour l'utilisateur."""
+        if analysis["status"] == "SUCCESS":
+            return "Code valide."
+
+        return (
+            f"\n--- RAPPORT DE DEBUGGING ---\n"
+            f"Type       : {analysis['error_type']}\n"
+            f"Ligne      : {analysis['line_number']}\n"
+            f"Message    : {analysis['message']}\n"
+            f"Suggestion : {analysis['suggestion']}\n"
+            f"---------------------------"
+        )
